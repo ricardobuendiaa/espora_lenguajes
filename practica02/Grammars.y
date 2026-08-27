@@ -41,7 +41,29 @@ ASA : nat                      { Num $1 }
 --   * operadores estrictamente binarios: expt y eq;
 --   * operadores unarios: not, add1, sub1, zero?.
 
+--   * operadores n-arios con al menos dos argumentos;
+    | '(' '+' narios ')'   { Add $3 } 
+    | '(' '-' narios ')'   { Sub $3 } 
+    | '(' '*' narios ')'   { Mul $3 } 
+    | '(' '/' narios ')'   { Div $3 } 
+    | '(' "and" narios ')' { And $3 }
+    | '(' "or" narios ')'  { Or $3 }
+    | '(' '<' narios ')'   { Lt $3 }
+    | '(' '>' narios ')'   { Gt $3 }
+    | '(' "<=" narios ')'  { Le $3 }
+    | '(' ">=" narios ')'  { Ge $3 }
 
+--   * operadores estrictamente binarios: expt y eq;
+
+    | '(' "expt" ASA ASA ')' { Expt $3 $4 }
+    | '(' "eq" ASA ASA ')'   { EqP $3 $4 }
+
+--   * operadores unarios: not, add1, sub1, zero?.
+
+    | '(' "not" ASA ')'    { Not $3 }
+    | '(' "add1" ASA ')'   { Add1 $3 }
+    | '(' "sub1" ASA ')'   { Sub1 $3 }
+    | '(' "zero?" ASA ')'  { ZeroP $3 }
 
 
 -- RETO 3:
