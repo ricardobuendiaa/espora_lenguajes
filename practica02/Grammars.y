@@ -70,8 +70,8 @@ ASA : nat                      { Num $1 }
 -- Agrega un no terminal para representar dos o mas argumentos.
 -- El resultado debe ser una lista de ASA.
 
-    narios : ASA  narios { $1 : $3 }
-           | ASA  ASA      { [$1, $3] }
+    narios : ASA  narios { $1 : $2 }
+           | ASA  ASA      { [$1, $2] }
 
 {
 parseError :: [Token] -> a
