@@ -41,9 +41,15 @@ ASA : nat                      { Num $1 }
 --   * operadores estrictamente binarios: expt y eq;
 --   * operadores unarios: not, add1, sub1, zero?.
 
+
+
+
 -- RETO 3:
 -- Agrega un no terminal para representar dos o mas argumentos.
 -- El resultado debe ser una lista de ASA.
+
+    narios : ASA ',' narios { $1 : $3 }
+           | ASA ',' ASA      { [$1, $3] }
 
 {
 parseError :: [Token] -> a
