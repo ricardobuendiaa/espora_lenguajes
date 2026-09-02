@@ -49,8 +49,7 @@ tokens :-
   sub1                 { \_ -> TokenSub1 }
   "zero?"                { \_ -> TokenZeroP }
 
-
-  
+ 
 
     .                     { \s -> error ("Lexical error: caracter no reconocido = "
                                       ++ show s
