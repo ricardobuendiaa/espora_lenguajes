@@ -69,7 +69,30 @@ freshName names = head (filter (`notElem` names) candidatos)
 
 
 sust :: ASA -> String -> ASA -> ASA
-sust = undefined
+sust (Id y) x s
+  | y == x    = s
+  | otherwise = Id y
+
+sust (Num n) _ _ = Num n
+sust (Boolean b) _ _ = Boolean b
+
+sust (And es) x s = And (map (\e -> sust e x s) es)
+sust (Or es) x s = Or (map (\e -> sust e x s) es)
+sust (Add es) x s = Add (map (\e -> sust e x s) es)
+sust (Sub es) x s = Sub (map (\e -> sust e x s) es)
+sust (Mul es) x s = Mul (map (\e -> sust e x s) es)
+sust (Div es) x s = Div (map (\e -> sust e x s) es)
+sust (Lt es) x s = Lt (map (\e -> sust e x s) es)
+sust (Gt es) x s = Gt (map (\e -> sust e x s) es)
+sust (Le es) x s = Le (map (\e -> sust e x s) es)
+sust (Ge es) x s = Ge (map (\e -> sust e x s) es)
+
+sust (Expt e1 e2) x s = Expt (sust e1 x s) (sust e2 x s)
+sust (EqP e1 e2) x s = EqP (sust e1 x s) (sust e2 x s)
+sust (Not e) x s = Not (sust e x s)
+sust (Add1 e) x s = Add1 (sust e x s)
+sust (Sub1 e) x s = Sub1 (sust e x s)
+sust (ZeroP e) x s = ZeroP (sust e x s)
 
 
 sustMany :: ASA -> [Binding] -> ASA
