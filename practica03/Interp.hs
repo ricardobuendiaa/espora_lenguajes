@@ -94,9 +94,22 @@ sust (Add1 e) x s = Add1 (sust e x s)
 sust (Sub1 e) x s = Sub1 (sust e x s)
 sust (ZeroP e) x s = ZeroP (sust e x s)
 
+sust (Let bs body) x s
+  | x `elem` map fst bs = Let (map (\(y, e) -> (y, sust e x s)) bs) body
+  | otherwise           = Let (map (\(y, e) -> (y, sust e x s)) bs) (sust body x s)
+
+sust (LetStar [] body) x s = sust body x s
+sust (LetStar ((y, e):bs) body) x s
+  | y == x    = LetStar ((y, sust e x s):bs) body
+  | otherwise = LetStar ((y, sust e x s):bs) (sust body x s)
 
 sustMany :: ASA -> [Binding] -> ASA
-sustMany = undefined
+sustMany e bs = foldl remplaza e' (zip bs temps)
+    where
+        temps = ["_t" ++ show n | n <- [0..]]
+        e' = foldl cambia e (zip bs temps)
+        cambia acc ((x, _),t) = sust acc x (Id t)
+        remplaza acc ((_, e), t) = sust acc t e 
 
 -- RETO 4: semantica operacional de paso grande
 -- let es simultaneo; let* se evalua directamente, asociacion por asociacion.
