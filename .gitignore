@@ -1,0 +1,8 @@
+# Archivos generados por Alex y Happy
+/practica03/Lexer.hs
+/practica03/Grammars.hs
+
+# Artefactos de compilacion de Haskell
+*.o
+*.hi
+.build/
