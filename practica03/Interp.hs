@@ -95,13 +95,38 @@ sust (Sub1 e) x s = Sub1 (sust e x s)
 sust (ZeroP e) x s = ZeroP (sust e x s)
 
 sust (Let bs body) x s
-  | x `elem` map fst bs = Let (map (\(y, e) -> (y, sust e x s)) bs) body
-  | otherwise           = Let (map (\(y, e) -> (y, sust e x s)) bs) (sust body x s)
+  | x `elem` xs = Let bs' body
+  | otherwise   = Let bsRen (sust bodyRen x s)
+  where
+    xs = map fst bs
+    bs' = map (\(y, e) -> (y, sust e x s)) bs
+    (bsRen, bodyRen) = renombra (freeVars s) bs' body (names (Let bs body) ++ names s ++ [x])
 
-sust (LetStar [] body) x s = sust body x s
+sust (LetStar [] body) x s = LetStar [] (sust body x s)
 sust (LetStar ((y, e):bs) body) x s
-  | y == x    = LetStar ((y, sust e x s):bs) body
-  | otherwise = LetStar ((y, sust e x s):bs) (sust body x s)
+  | y == x    = LetStar ((y, e'):bs) body
+  | y `elem` freeVars s =
+      let z = freshName (names resto ++ names s ++ [x, y])
+          LetStar bsRen bodyRen = sust (sust resto y (Id z)) x s
+       in LetStar ((z, e'):bsRen) bodyRen
+  | otherwise =
+      let LetStar bs' body' = sust resto x s
+       in LetStar ((y, e'):bs') body'
+  where
+    e' = sust e x s
+    resto = LetStar bs body
+
+renombra :: [String] -> [Binding] -> ASA -> [String] -> ([Binding], ASA)
+renombra _ [] body _ = ([], body)
+renombra libres ((y, e):bs) body usados
+  | y `notElem` libres =
+      let (bsRen, bodyRen) = renombra libres bs body usados
+       in ((y, e) : bsRen, bodyRen)
+  | otherwise =
+      let z = freshName usados
+          body' = sust body y (Id z)
+          (bsRen, bodyRen) = renombra libres bs body' (z : usados)
+       in ((z, e) : bsRen, bodyRen)
 
 sustMany :: ASA -> [Binding] -> ASA
 sustMany e bs = foldl remplaza e' (zip bs temps)
@@ -114,4 +139,85 @@ sustMany e bs = foldl remplaza e' (zip bs temps)
 -- RETO 4: semantica operacional de paso grande
 -- let es simultaneo; let* se evalua directamente, asociacion por asociacion.
 bigStep :: ASA -> Maybe ASA
-bigStep = undefined
+bigStep (Num n) = Just (Num n)
+bigStep (Boolean b) = Just (Boolean b)
+bigStep (Id _) = Nothing
+bigStep (And es) = do
+  vs <- mapM bigStep es
+  bs <- mapM valorBool vs
+  Just (Boolean (and bs))
+bigStep (Or es) = do
+  vs <- mapM bigStep es
+  bs <- mapM valorBool vs
+  Just (Boolean (or bs))
+bigStep (Add es) = Num . sum <$> numeros es
+bigStep (Mul es) = Num . product <$> numeros es
+bigStep (Sub es) = Num . restaTruncada <$> numeros es
+bigStep (Div es) = do
+  ns <- numeros es
+  if all (/= 0) (tail ns) then Just (Num (division ns)) else Nothing
+bigStep (Lt es) = comparacion (<) es
+bigStep (Gt es) = comparacion (>) es
+bigStep (Le es) = comparacion (<=) es
+bigStep (Ge es) = comparacion (>=) es
+bigStep (Expt e1 e2) = do
+  Num n <- bigStep e1
+  Num m <- bigStep e2
+  Just (Num (n ^ m))
+bigStep (EqP e1 e2) = do
+  v1 <- bigStep e1
+  v2 <- bigStep e2
+  case (v1, v2) of
+    (Num n, Num m) -> Just (Boolean (n == m))
+    (Boolean b, Boolean c) -> Just (Boolean (b == c))
+    _ -> Nothing
+bigStep (Not e) = do
+  v <- bigStep e
+  case v of
+    Boolean b -> Just (Boolean (not b))
+    Num _ -> Just (Boolean False)
+    _ -> Nothing
+bigStep (Add1 e) = unaryNum (+ 1) e
+bigStep (Sub1 e) = unaryNum (max 0 . subtract 1) e
+bigStep (ZeroP e) = do
+  Num n <- bigStep e
+  Just (Boolean (n == 0))
+bigStep (Let bs body)
+  | length xs /= length (nub xs) = Nothing
+  | otherwise = do
+      vs <- mapM (bigStep . snd) bs
+      bigStep (sustMany body (zip xs vs))
+  where xs = map fst bs
+bigStep (LetStar [] body) = bigStep body
+bigStep (LetStar ((x, e):bs) body) = do
+  v <- bigStep e
+  bigStep (sust (LetStar bs body) x v)
+
+valorBool :: ASA -> Maybe Bool
+valorBool (Boolean b) = Just b
+valorBool _ = Nothing
+
+valorNum :: ASA -> Maybe Int
+valorNum (Num n) = Just n
+valorNum _ = Nothing
+
+numeros :: [ASA] -> Maybe [Int]
+numeros es = mapM (\e -> bigStep e >>= valorNum) es
+
+restaTruncada :: [Int] -> Int
+restaTruncada (n:ns) = foldl (\acc m -> max 0 (acc - m)) n ns
+restaTruncada [] = 0
+
+division :: [Int] -> Int
+division (n:ns) = foldl div n ns
+division [] = 0
+
+comparacion :: (Int -> Int -> Bool) -> [ASA] -> Maybe ASA
+comparacion op es = do
+  ns <- numeros es
+  Just (Boolean (and (zipWith op ns (tail ns))))
+
+unaryNum :: (Int -> Int) -> ASA -> Maybe ASA
+unaryNum op e = do
+  Num n <- bigStep e
+  Just (Num (op n))
