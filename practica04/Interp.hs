@@ -133,4 +133,39 @@ bigStep env (Num n) = Just (NumV n)
 
 bigStep env (Boolean b) = Just (BooleanV b)
 
--- falta completar compañero 
+bigStep env (Add izquierda derecha) =
+  case bigStep env izquierda of
+    Just (NumV n) ->
+      case bigStep env derecha of
+        Just (NumV m) -> Just (NumV (n + m))
+        _ -> Nothing
+    _ -> Nothing
+
+bigStep env (Sub izquierda derecha) =
+  case bigStep env izquierda of
+    Just (NumV n) ->
+      case bigStep env derecha of
+        Just (NumV m) -> Just (NumV (max 0 (n - m)))
+        _ -> Nothing
+    _ -> Nothing
+
+bigStep env (Not expresion) =
+  case bigStep env expresion of
+    Just (BooleanV b) -> Just (BooleanV (not b))
+    Just (NumV _) -> Just (BooleanV False)
+    _ -> Nothing
+
+bigStep env (Fun parametro cuerpo) =
+  Just (ClosureV parametro cuerpo env)
+
+bigStep env (App funcion argumento) =
+  case bigStep env funcion of
+    Just valorFuncion ->
+      case bigStep env argumento of
+        Just valorArgumento ->
+          case valorFuncion of
+            ClosureV parametro cuerpo ambienteDefinicion ->
+              bigStep ((parametro, valorArgumento) : ambienteDefinicion) cuerpo
+            _ -> Nothing
+        Nothing -> Nothing
+    Nothing -> Nothing
