@@ -110,17 +110,17 @@ desugarLista (x: xs) =
       Nothing -> Nothing
       Just xs' -> Just (x':xs')
 
-
-
-
-
-
-
 -- RETO 2: evaluacion con cerraduras ---------------------------------------
 
 -- Busca la asociacion mas reciente de un identificador.
 lookupEnv :: Nombre -> Env -> Maybe Value
-lookupEnv = undefined
+lookupEnv _ [] = Nothing
+lookupEnv nombre ((id, valor): resto) =
+  if nombre == id
+    then Just valor
+    else lookupEnv nombre resto 
+
+
 
 -- Evalua con alcance estatico. Fun produce una cerradura con el ambiente
 -- actual. App evalua primero la posicion de funcion, despues el argumento y
