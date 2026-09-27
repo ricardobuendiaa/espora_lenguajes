@@ -51,7 +51,12 @@ curryApp funcion argumentos = Just (aplica funcion argumentos)
 -- Convierte dos o mas operandos en operaciones binarias asociadas por la
 -- izquierda. El constructor recibido sera Add o Sub.
 binaryOp :: (ASA -> ASA -> ASA) -> [ASA] -> Maybe ASA
-binaryOp = undefined
+binaryOp _ [] = Nothing
+binaryOp _ [_] = Nothing
+binaryOp op (x:y:xs ) = Just (combina (op x y) xs)
+  where
+    combina acumulado [] = acumulado
+    combina acumulado (e: es) = combina (op acumulado e) es
 
 
 -- Convierte las ligaduras de let* en let anidados y despues elimina cada let
