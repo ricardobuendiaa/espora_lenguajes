@@ -1,7 +1,6 @@
 module Interp where
 
 import Grammars
-import Data.Bits (Bits(xor))
 
 data ASA
   = Id Nombre
@@ -37,27 +36,35 @@ curryFun parametros cuerpo =
     currifica (x : xs) c = Fun x (currifica xs c)
     currifica [] x = x
 
-    repetidos [] = Nothing
-    repetidos (x:xs) = if x `elem` xs then Just () else repetidos xs
-
+    repetidos [] = False
+    repetidos (x:xs) = if x `elem` xs then True else repetidos xs
 
 -- Convierte una aplicacion con uno o mas argumentos en aplicaciones unarias
 -- asociadas por la izquierda.
 curryApp :: ASA -> [ASA] -> Maybe ASA
+curryApp _ [] = Nothing
+curryApp funcion argumentos = Just (aplica funcion argumentos)
+  where
+    aplica f [] = f
+    aplica f (a:as) = aplica (App f a) as
 
 -- Convierte dos o mas operandos en operaciones binarias asociadas por la
 -- izquierda. El constructor recibido sera Add o Sub.
 binaryOp :: (ASA -> ASA -> ASA) -> [ASA] -> Maybe ASA
+binaryOp = undefined
+
 
 -- Convierte las ligaduras de let* en let anidados y despues elimina cada let
 -- mediante LetS x e1 e2 ==> App (Fun x e2') e1'. La primera ligadura debe
 -- quedar en el let exterior para que las siguientes puedan usarla.
 desugar :: SASA -> Maybe ASA
+desugar = undefined
 
 -- RETO 2: evaluacion con cerraduras ---------------------------------------
 
 -- Busca la asociacion mas reciente de un identificador.
 lookupEnv :: Nombre -> Env -> Maybe Value
+lookupEnv = undefined
 
 -- Evalua con alcance estatico. Fun produce una cerradura con el ambiente
 -- actual. App evalua primero la posicion de funcion, despues el argumento y
@@ -66,3 +73,4 @@ lookupEnv :: Nombre -> Env -> Maybe Value
 -- Conserva la resta truncada y la convencion de que todo numero cuenta como
 -- verdadero cuando aparece como operando de Not.
 bigStep :: Env -> ASA -> Maybe Value
+bigStep = undefined
