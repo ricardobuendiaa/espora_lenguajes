@@ -118,9 +118,7 @@ lookupEnv _ [] = Nothing
 lookupEnv nombre ((id, valor): resto) =
   if nombre == id
     then Just valor
-    else lookupEnv nombre resto 
-
-
+    else lookupEnv nombre resto
 
 -- Evalua con alcance estatico. Fun produce una cerradura con el ambiente
 -- actual. App evalua primero la posicion de funcion, despues el argumento y
@@ -129,4 +127,10 @@ lookupEnv nombre ((id, valor): resto) =
 -- Conserva la resta truncada y la convencion de que todo numero cuenta como
 -- verdadero cuando aparece como operando de Not.
 bigStep :: Env -> ASA -> Maybe Value
-bigStep = undefined
+bigStep env (Id nombre) = lookupEnv nombre env
+
+bigStep env (Num n) = Just (NumV n)
+
+bigStep env (Boolean b) = Just (BooleanV b)
+
+-- falta completar compañero 
