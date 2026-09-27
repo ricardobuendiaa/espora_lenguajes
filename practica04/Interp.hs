@@ -1,6 +1,7 @@
 module Interp where
 
 import Grammars
+import Data.Bits (Bits(xor))
 
 data ASA
   = Id Nombre
@@ -26,6 +27,19 @@ type Env = [(Nombre, Value)]
 -- Convierte una lista no vacia de parametros distintos en funciones
 -- unarias anidadas. El primer parametro queda en la funcion exterior.
 curryFun :: [Nombre] -> ASA -> Maybe ASA
+curryFun [] _ = Nothing
+curryFun parametros cuerpo =
+  if repetidos parametros
+    then Nothing
+    else Just (currifica parametros cuerpo)
+  where
+    currifica [x] c = Fun x c
+    currifica (x : xs) c = Fun x (currifica xs c)
+    currifica [] x = x
+
+    repetidos [] = Nothing
+    repetidos (x:xs) = if x `elem` xs then Just () else repetidos xs
+
 
 -- Convierte una aplicacion con uno o mas argumentos en aplicaciones unarias
 -- asociadas por la izquierda.
