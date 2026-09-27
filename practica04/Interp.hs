@@ -96,7 +96,7 @@ desugar (LetS nombre valor cuerpo) =
 desugar (LetStarS ligaduras cuerpo) =
   desugar (anidaLets ligaduras cuerpo)
 
-anidaLets :: [(Nombre, SASA)] -> SASA -> Maybe ASA
+anidaLets :: [(Nombre, SASA)] -> SASA -> SASA
 anidaLets [] cuerpo = cuerpo
 anidaLets ((nombre, valor): resto) cuerpo =
   LetS nombre valor (anidaLets resto cuerpo)
