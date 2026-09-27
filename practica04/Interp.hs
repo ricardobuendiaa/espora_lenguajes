@@ -69,7 +69,46 @@ desugar (BooleanS b) = Just (Boolean b)
 desugar (NotS e) = do
   e' <- desugar e
   Just (Not e')
+desugar (AddS op) =
+  case desugarLista op of
+    Nothing -> Nothing
+    Just ops -> binaryOp Add ops
+desugar (SubS op) =
+  case desugarLista op of
+    Nothing -> Nothing
+    Just ops -> binaryOp Sub ops
+desugar (FunS parametros cuerpo) = 
+  case desugar cuerpo of
+    Nothing -> Nothing
+    Just cuerpo' -> curryFun parametros cuerpo'
+desugar (AppS funcion argumentos) =
+  case desugar funcion of
+    Nothing -> Nothing
+    Just funcion' -> case desugarLista argumentos of
+      Nothing -> Nothing
+      Just argumentos' -> curryApp funcion' argumentos'
+desugar (LetS nombre valor cuerpo) = 
+  case desugar valor of
+    Nothing -> Nothing
+    Just valor' -> case desugar cuerpo of
+      Nothing -> Nothing
+      Just cuerpo' -> Just (App (Fun nombre cuerpo') valor')
+desugar (LetStarS ligaduras cuerpo) =
+  desugar (anidaLets ligaduras cuerpo)
 
+anidaLets :: [(Nombre, SASA)] -> SASA -> Maybe ASA
+anidaLets [] cuerpo = cuerpo
+anidaLets ((nombre, valor): resto) cuerpo =
+  LetS nombre valor (anidaLets resto cuerpo)
+
+desugarLista :: [SASA] -> Maybe [ASA]
+desugarLista [] = Just []
+desugarLista (x: xs) = 
+  case desugar x of
+    Nothing -> Nothing
+    Just x' -> case desugarLista xs of
+      Nothing -> Nothing
+      Just xs' -> Just (x':xs')
 
 
 
