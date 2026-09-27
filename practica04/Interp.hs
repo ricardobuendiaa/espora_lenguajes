@@ -63,7 +63,19 @@ binaryOp op (x:y:xs ) = Just (combina (op x y) xs)
 -- mediante LetS x e1 e2 ==> App (Fun x e2') e1'. La primera ligadura debe
 -- quedar en el let exterior para que las siguientes puedan usarla.
 desugar :: SASA -> Maybe ASA
-desugar = undefined
+desugar (IdS i) = Just (Id i)
+desugar (NumS n) = Just (Num n)
+desugar (BooleanS b) = Just (Boolean b)
+desugar (NotS e) = do
+  e' <- desugar e
+  Just (Not e')
+
+
+
+
+
+
+
 
 -- RETO 2: evaluacion con cerraduras ---------------------------------------
 
