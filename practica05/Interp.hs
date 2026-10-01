@@ -146,3 +146,20 @@ bigStep env (Id nombre) = lookupEnv nombre env
 bigStep _ (Num n) = Just (NumV n)
 bigStep _ (Boolean b) = Just (BooleanV b)
 bigStep env (Fun parametro cuerpo) = Just (ClosureV parametro cuerpo env)
+bigStep env (Add izquierda derecha) =
+  suma (maybe Nothing strict (bigStep env izquierda))
+       (maybe Nothing strict (bigStep env derecha))
+  where
+    suma (Just (NumV n)) (Just (NumV m)) = Just (NumV (n + m))
+    suma _ _ = Nothing
+bigStep env (Sub izquierda derecha) =
+  resta (maybe Nothing strict (bigStep env izquierda))
+        (maybe Nothing strict (bigStep env derecha))
+  where
+    resta (Just (NumV n)) (Just (NumV m)) = Just (NumV (max 0 (n - m)))
+    resta _ _ = Nothing
+bigStep env (Not expresion) = niega (maybe Nothing strict (bigStep env expresion))
+  where
+    niega (Just (BooleanV b)) = Just (BooleanV (not b))
+    niega (Just (NumV _)) = Just (BooleanV False)
+    niega _ = Nothing
