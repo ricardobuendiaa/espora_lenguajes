@@ -14,9 +14,16 @@ import System.Console.Haskeline (InputT, defaultSettings, getInputLine, runInput
 --       (lambda x. f (x x))
 --       (lambda x. f (x x))
 combinadorY :: ASA
+combinadorY = Fun "f" (App autoaplicacion autoaplicacion)
+  where
+    autoaplicacion = Fun "x" (App (Id "f") (App (Id "x") (Id "x")))
 
 -- Evalua combinadorY en el ambiente vacio y asocia su valor con el nombre Y.
 prelude :: Env
+prelude = ligaY (bigStep [] combinadorY)
+  where
+    ligaY (Just valor) = [("Y", valor)]
+    ligaY Nothing = []
 
 -- Integra el analisis, el desazucarado y la evaluacion desde prelude.
 -- El resultado final debe pasar por strict antes de devolverse.
