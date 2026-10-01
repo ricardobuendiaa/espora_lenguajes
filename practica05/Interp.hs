@@ -163,3 +163,15 @@ bigStep env (Not expresion) = niega (maybe Nothing strict (bigStep env expresion
     niega (Just (BooleanV b)) = Just (BooleanV (not b))
     niega (Just (NumV _)) = Just (BooleanV False)
     niega _ = Nothing
+bigStep env (If condicion consecuente alternativa) =
+  elige (maybe Nothing strict (bigStep env condicion))
+  where
+    elige (Just (BooleanV True)) = bigStep env consecuente
+    elige (Just (BooleanV False)) = bigStep env alternativa
+    elige _ = Nothing
+bigStep env (App funcion argumento) =
+  aplica (maybe Nothing strict (bigStep env funcion))
+  where
+    aplica (Just (ClosureV parametro cuerpo ambienteDefinicion)) =
+      bigStep ((parametro, ExprV argumento env) : ambienteDefinicion) cuerpo
+    aplica _ = Nothing
