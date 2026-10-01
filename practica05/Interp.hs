@@ -120,6 +120,10 @@ desugarLista (x:xs) = agrega (desugar x) (desugarLista xs)
 
 -- Busca la asociacion mas reciente sin exigir su contenido.
 lookupEnv :: Nombre -> Env -> Maybe Value
+lookupEnv _ [] = Nothing
+lookupEnv nombre ((identificador, valor):resto)
+  | nombre == identificador = Just valor
+  | otherwise = lookupEnv nombre resto
 
 -- Exige una cerradura de expresion usando el ambiente guardado. Si al
 -- evaluarla se obtiene otra ExprV, continua hasta producir otro valor.
