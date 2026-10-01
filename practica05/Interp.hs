@@ -57,6 +57,9 @@ binaryOp op (x:y:xs) = Just (combina (op x y) xs)
 -- Desazucara las clausulas ordinarias de cond en If anidados. La alternativa
 -- else es el ultimo argumento y se conserva como la rama final.
 desugarCond :: [(SASA, SASA)] -> SASA -> Maybe ASA
+desugarCond [] alternativa = desugar alternativa
+desugarCond ((condicion, rama):resto) alternativa =
+  desugar (IfS condicion rama (CondS resto alternativa))
 
 -- Elimina toda la sintaxis superficial. CondS se traduce a If anidados.
 -- LetRecS f definicion cuerpo se traduce usando el identificador Y:
@@ -92,6 +95,14 @@ desugar (AppS funcion argumentos) =
 desugar (LetS nombre valor cuerpo) =
   desugar (AppS (FunS [nombre] cuerpo) [valor])
 desugar (LetStarS ligaduras cuerpo) = desugar (anidaLets ligaduras cuerpo)
+desugar (IfS condicion consecuente alternativa) =
+  condicional (desugar condicion) (desugar consecuente) (desugar alternativa)
+  where
+    condicional (Just c) (Just t) (Just e) = Just (If c t e)
+    condicional _ _ _ = Nothing
+desugar (CondS clausulas alternativa) = desugarCond clausulas alternativa
+desugar (LetRecS nombre definicion cuerpo) =
+  desugar (LetS nombre (AppS (IdS "Y") [FunS [nombre] definicion]) cuerpo)
 
 anidaLets :: [(Nombre, SASA)] -> SASA -> SASA
 anidaLets [] cuerpo = cuerpo
