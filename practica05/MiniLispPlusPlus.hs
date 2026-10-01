@@ -28,6 +28,10 @@ prelude = ligaY (bigStep [] combinadorY)
 -- Integra el analisis, el desazucarado y la evaluacion desde prelude.
 -- El resultado final debe pasar por strict antes de devolverse.
 evalua :: String -> Maybe Value
+evalua entrada = evaluaNucleo (desugar (parse (lexer entrada)))
+  where
+    evaluaNucleo Nothing = Nothing
+    evaluaNucleo (Just expresion) = maybe Nothing strict (bigStep prelude expresion)
 
 -- Infraestructura provista. No forma parte de los retos.
 repl :: IO ()
