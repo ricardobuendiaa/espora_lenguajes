@@ -65,6 +65,45 @@ desugarCond :: [(SASA, SASA)] -> SASA -> Maybe ASA
 --
 -- y despues se elimina tambien ese LetS. LetRecS no pertenece al nucleo.
 desugar :: SASA -> Maybe ASA
+desugar (IdS i) = Just (Id i)
+desugar (NumS n) = Just (Num n)
+desugar (BooleanS b) = Just (Boolean b)
+desugar (NotS e) = niega (desugar e)
+  where
+    niega (Just e') = Just (Not e')
+    niega Nothing = Nothing
+desugar (AddS operandos) = suma (desugarLista operandos)
+  where
+    suma (Just es) = binaryOp Add es
+    suma Nothing = Nothing
+desugar (SubS operandos) = resta (desugarLista operandos)
+  where
+    resta (Just es) = binaryOp Sub es
+    resta Nothing = Nothing
+desugar (FunS parametros cuerpo) = funcion (desugar cuerpo)
+  where
+    funcion (Just cuerpo') = curryFun parametros cuerpo'
+    funcion Nothing = Nothing
+desugar (AppS funcion argumentos) =
+  aplicacion (desugar funcion) (desugarLista argumentos)
+  where
+    aplicacion (Just f) (Just args) = curryApp f args
+    aplicacion _ _ = Nothing
+desugar (LetS nombre valor cuerpo) =
+  desugar (AppS (FunS [nombre] cuerpo) [valor])
+desugar (LetStarS ligaduras cuerpo) = desugar (anidaLets ligaduras cuerpo)
+
+anidaLets :: [(Nombre, SASA)] -> SASA -> SASA
+anidaLets [] cuerpo = cuerpo
+anidaLets ((nombre, valor):resto) cuerpo =
+  LetS nombre valor (anidaLets resto cuerpo)
+
+desugarLista :: [SASA] -> Maybe [ASA]
+desugarLista [] = Just []
+desugarLista (x:xs) = agrega (desugar x) (desugarLista xs)
+  where
+    agrega (Just x') (Just xs') = Just (x':xs')
+    agrega _ _ = Nothing
 
 -- RETO 4: evaluacion perezosa con alcance estatico ------------------------
 
