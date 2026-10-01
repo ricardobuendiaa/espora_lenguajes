@@ -128,6 +128,8 @@ lookupEnv nombre ((identificador, valor):resto)
 -- Exige una cerradura de expresion usando el ambiente guardado. Si al
 -- evaluarla se obtiene otra ExprV, continua hasta producir otro valor.
 strict :: Value -> Maybe Value
+strict (ExprV expresion env) = maybe Nothing strict (bigStep env expresion)
+strict valor = Just valor
 
 -- Semantica de paso grande con alcance estatico y evaluacion perezosa.
 --
@@ -140,3 +142,7 @@ strict :: Value -> Maybe Value
 --
 -- La resta sobre naturales permanece truncada en cero.
 bigStep :: Env -> ASA -> Maybe Value
+bigStep env (Id nombre) = lookupEnv nombre env
+bigStep _ (Num n) = Just (NumV n)
+bigStep _ (Boolean b) = Just (BooleanV b)
+bigStep env (Fun parametro cuerpo) = Just (ClosureV parametro cuerpo env)
