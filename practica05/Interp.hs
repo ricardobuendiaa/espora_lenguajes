@@ -28,8 +28,31 @@ type Env = [(Nombre, Value)]
 -- Recupera estas funciones del laboratorio 4. Las funciones y aplicaciones
 -- del nucleo siguen siendo unarias, y las operaciones siguen siendo binarias.
 curryFun :: [Nombre] -> ASA -> Maybe ASA
+curryFun [] _ = Nothing
+curryFun parametros cuerpo
+  | repetidos parametros = Nothing
+  | otherwise = Just (currifica parametros cuerpo)
+  where
+    currifica [] c = c
+    currifica (x:xs) c = Fun x (currifica xs c)
+
+    repetidos [] = False
+    repetidos (x:xs) = x `elem` xs || repetidos xs
+
 curryApp :: ASA -> [ASA] -> Maybe ASA
+curryApp _ [] = Nothing
+curryApp funcion argumentos = Just (aplica funcion argumentos)
+  where
+    aplica f [] = f
+    aplica f (a:as) = aplica (App f a) as
+
 binaryOp :: (ASA -> ASA -> ASA) -> [ASA] -> Maybe ASA
+binaryOp _ [] = Nothing
+binaryOp _ [_] = Nothing
+binaryOp op (x:y:xs) = Just (combina (op x y) xs)
+  where
+    combina acumulado [] = acumulado
+    combina acumulado (e:es) = combina (op acumulado e) es
 
 -- Desazucara las clausulas ordinarias de cond en If anidados. La alternativa
 -- else es el ultimo argumento y se conserva como la rama final.
