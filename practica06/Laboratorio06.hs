@@ -60,11 +60,14 @@ concatena [] = []
 concatena (xs : xss) = xs ++ concatena xss
 
 concatenaCola :: [[a]] -> [a]
-concatenaCola = undefined
+concatenaCola xss = auxiliar xss []
+  where
+    auxiliar [] acc = acc
+    auxiliar (xs : xss) acc = auxiliar xss (acc ++ xs)
 
 concatenaCPS :: [[a]] -> ([a] -> r) -> r
-concatenaCPS [] k = 
-concatenaCPS (x:xs) k = ?
+concatenaCPS [] k = k []
+concatenaCPS (xs : xss) k = concatenaCPS xss (\v -> k (xs ++ v))
 
 -- 5. Intercalado de dos listas --------------------------------------------
 
@@ -75,9 +78,13 @@ intercala (x : xs) (y : ys) =
   x : y : intercala xs ys
 
 intercalaCola :: [a] -> [a] -> [a]
-intercalaCola = undefined
+intercalaCola xs ys = auxiliar xs ys []
+  where
+    auxiliar [] ys acc = acc ++ ys
+    auxiliar xs [] acc = acc ++ xs
+    auxiliar (x : xs) (y : ys) acc = auxiliar xs ys (acc ++ [x, y])
 
 intercalaCPS :: [a] -> [a] -> ([a] -> r) -> r
-intercalaCPS [] ys k = ?
-intercalaCPS xs [] k = ?
-intercalaCPS (x:xs) (y:ys) k = ?
+intercalaCPS [] ys k = k ys
+intercalaCPS xs [] k = k xs
+intercalaCPS (x : xs) (y : ys) k = intercalaCPS xs ys (\v -> k (x : y : v))
