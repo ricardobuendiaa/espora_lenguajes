@@ -51,33 +51,33 @@ reversaCola xs = auxiliar xs []
 
 reversaCPS :: [a] -> ([a] -> r) -> r
 reversaCPS [] k = k []
-reversaCPS (x : xs) k = reversaCPS xs (\acc -> k (x : acc))
+reversaCPS (x : xs) k = reversaCPS xs (\v -> k (v ++ [x]))
 
 -- 4. Concatenacion de una lista de listas ---------------------------------
 
---concatena :: [[a]] -> [a]
---concatena [] = []
---concatena (xs : xss) = xs ++ concatena xss
+concatena :: [[a]] -> [a]
+concatena [] = []
+concatena (xs : xss) = xs ++ concatena xss
 
---concatenaCola :: [[a]] -> [a]
---concatenaCola = undefined
+concatenaCola :: [[a]] -> [a]
+concatenaCola = undefined
 
---concatenaCPS :: [[a]] -> ([a] -> r) -> r
---concatenaCPS [] k = 
---concatenaCPS (x:xs) k = ?
+concatenaCPS :: [[a]] -> ([a] -> r) -> r
+concatenaCPS [] k = 
+concatenaCPS (x:xs) k = ?
 
 -- 5. Intercalado de dos listas --------------------------------------------
 
---intercala :: [a] -> [a] -> [a]
---intercala [] ys = ys
---intercala xs [] = xs
---intercala (x : xs) (y : ys) =
- -- x : y : intercala xs ys
+intercala :: [a] -> [a] -> [a]
+intercala [] ys = ys
+intercala xs [] = xs
+intercala (x : xs) (y : ys) =
+  x : y : intercala xs ys
 
---intercalaCola :: [a] -> [a] -> [a]
---intercalaCola = undefined
+intercalaCola :: [a] -> [a] -> [a]
+intercalaCola = undefined
 
---intercalaCPS :: [a] -> [a] -> ([a] -> r) -> r
---intercalaCPS [] ys k = ?
---intercalaCPS xs [] k = ?
---intercalaCPS (x:xs) (y:ys) k = ?
+intercalaCPS :: [a] -> [a] -> ([a] -> r) -> r
+intercalaCPS [] ys k = ?
+intercalaCPS xs [] k = ?
+intercalaCPS (x:xs) (y:ys) k = ?
